@@ -1,8 +1,7 @@
-import logging // importing the built-in logging module, to log messages to the console, a file, or other destinations.
-import sqlite3 // provides a way to interact with SQLite databases
+import logging 
+import sqlite3 // provides a way to interact with SQLite database
 from datetime import datetime
-//datetime class allows us to work with dates and times in Python.
-import fitz // fitz module from the PyMuPDF library:used for working with PDF files.
+import fitz // fitz module from the PyMuPDF library
 import re //built-in re module: support for regular expressions.
 
 def parse_pdf(pdf_file):
