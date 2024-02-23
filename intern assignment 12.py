@@ -1,0 +1,88 @@
+import logging 
+import sqlite3 // provides a way to interact with SQLite database
+from datetime import datetime
+import fitz // fitz module from the PyMuPDF library
+import re
+
+def parse_pdf(pdf_file):
+    // To parse the given PDF file to extract bank transaction data.
+    // It has arguments of pdf_file (str) and returns of 'list of dictionaries 
+         
+    transactions = [] //to store the extracted transaction data.
+    //try to open the PDF file with fitz module. If done return a Doc object: opened PDF file.
+    try:
+        doc = fitz.open(pdf_file)
+        for page in doc:
+            text = page.get_text() //get the text content of the current page 
+            for line in text.split('\n'):
+                 
+                //checks if the current line of text contains the words 'credit' or 'debit'
+                if 'credit' in line.lower() or 'debit' in line.lower():
+                    transaction = extract_transaction_data(line)
+                    if transaction:
+                        transactions.append(transaction)
+                //check if the extract_transaction_data returned a non-empty dictionary
+    except Exception as e:
+        logging.error(f'Error parsing PDF: {e}')
+    //If an error in processing the PDF: log an error message using logging module.
+    return transactions
+  
+def extract_transaction_data(line):
+    
+    // to extract transaction data from text-line. It has arguments of line and returns a dictionary of transaction data.
+     
+    try:
+        # Use regex to extract transaction components from the line
+        regex = r'(\d{2}-\d{2}-\d{4})\s*(.*?)(CR|DR)?\s*(\d+\.\d+)'
+        match = re.match(regex, line)
+        //The pattern matches a date, a description, a credit/debit indicator, and an amount in the line of text
+        if match:
+            //If the pattern matched, this extracts the data from the match object
+            transaction_date = datetime.strptime(match.group(1), '%d-%m-%Y').strftime('%Y-%m-%d')
+            //The date is converted to the format 'YYYY-MM-DD'
+            description = match.group(2)
+            credit_debit = match.group(3)
+            amount = float(match.group(4))
+            if credit_debit == 'CR':// the transaction is a credit.
+                return {'transaction_date': transaction_date, 'description': description, 'credit_amount': amount} //returns a dictionary containing the transaction data 
+            elif credit_debit == 'DR': //if the transaction is a debit.
+                return {'transaction_date': transaction_date, 'description': description, 'debit_amount': amount}
+    except Exception as e:
+        logging.error(f'Error extracting transaction data: {e}')//this catches the exception and logs an error message using the logging module
+    return None //to indicate that transaction data could not be extracted from the line.
+
+def insert_into_database(transactions, database, table_name):
+   //To insert transactions into the SQLite database.
+    try:
+        conn = sqlite3.connect(database)//opens a connection to the SQLite database
+        c = conn.cursor() //create a cursor object 
+        for transaction in transactions: //insert the transaction data into the database
+            c.execute(f"INSERT INTO {table_name} VALUES (?, ?, ?, ?)",
+                      (transaction['transaction_date'], transaction['description'], transaction.get('credit_amount', None), transaction.get('debit_amount', None)))
+        conn.commit()
+        //commits changes made to the database.
+        logging.info('Transactions inserted into database successfully.') //logs an informational message
+    except Exception as e:
+        logging.error(f'Error inserting transactions into database: {e}') // to catch the exception and log an error message
+    finally:
+        if conn:
+            conn.close()
+
+def setup_logging(log_file, log_level=logging.ERROR):
+    logging.basicConfig(filename=log_file, level=log_level)
+
+if __name__ == '__main__':
+    //Set up logging
+    setup_logging('bank_statement.log')
+
+     pdf_file = 'bank_statement.pdf' //PDF file path
+
+    //SQL database and table details
+    database = 'bank_transactions.db'
+    table_name = 'bank_transactions'
+
+    //Parse PDF and extract transaction data
+    transactions = parse_pdf(pdf_file)
+
+    insert_into_database(transactions, database, table_name)
+    //Inserting transactions into the database
