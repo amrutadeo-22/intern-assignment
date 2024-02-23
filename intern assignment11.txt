@@ -70,20 +70,13 @@ def insert_into_database(transactions, database, table_name):
             conn.close()
 
 def setup_logging(log_file, log_level=logging.ERROR):
-    """
-    Setup logging configuration.
-    Args:
-        log_file (str): Path to the log file.
-        log_level (int): Logging level (default is logging.ERROR).
-    """
     logging.basicConfig(filename=log_file, level=log_level)
 
 if __name__ == '__main__':
     //Set up logging
     setup_logging('bank_statement.log')
 
-    
-    pdf_file = 'bank_statement.pdf' //PDF file path
+     pdf_file = 'bank_statement.pdf' //PDF file path
 
     //SQL database and table details
     database = 'bank_transactions.db'
