@@ -2,7 +2,7 @@ import logging
 import sqlite3 // provides a way to interact with SQLite database
 from datetime import datetime
 import fitz // fitz module from the PyMuPDF library
-import re //built-in re module: support for regular expressions.
+import re
 
 def parse_pdf(pdf_file):
     // To parse the given PDF file to extract bank transaction data.
