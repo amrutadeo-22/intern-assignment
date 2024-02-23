@@ -16,7 +16,7 @@ def parse_pdf(pdf_file):
             text = page.get_text() //get the text content of the current page 
             for line in text.split('\n'):
                  
-                //checks\ if the current line of text contains the words 'credit' or 'debit'
+                //checks if the current line of text contains the words 'credit' or 'debit'
                 if 'credit' in line.lower() or 'debit' in line.lower():
                     transaction = extract_transaction_data(line)
                     if transaction:
